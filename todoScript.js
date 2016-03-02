@@ -16,7 +16,9 @@ var Add = React.createClass({
 		if (!myTask){
 			return;
 		}
+		
 		console.log("add task "+ myTask);
+		this.props.onAddClicked({task : myTask});
 		this.setState({task : ''})
 	},
 	
@@ -37,12 +39,21 @@ var Add = React.createClass({
 });
 
 var Todo = React.createClass({
+
+	handleDone : function(){
+		console.log("inside handle done of Todo");
+		console.log({task : this.props.task.toString()});
+		//console.log(this.props.handleClickTodo);
+		this.props.handleClickTodo([{task : this.props.task.toString()}]);
+		//this.props.handleClickTodo(this);
+	},
+
     render : function(){
     	console.log("inside Todo");
 		return(
 			<div className = "todo">
 			<p>{this.props.task}</p>
-			<button>Done</button>
+			<button onClick={this.handleDone}>Done</button>
 			</div>
 		);	    	
    	}
@@ -50,14 +61,21 @@ var Todo = React.createClass({
 
 
 var TodoList = React.createClass({
+
+	handleClick : function(todo){
+		console.log("inside handle click of TodoList");
+		console.log(todo);
+		this.props.handleClick(todo);
+	},
+
 	render : function(){
+		var self = this;
 		var tasks = this.props.data.map(function(comment) {
       		return (
-        		<Todo task={comment.task} />
+        		<Todo task={comment.task} handleClickTodo={self.handleClick}/>
       		);
     	});
-		console.log("inside TodoList");
-		
+		console.log("inside TodoList render");		
 		return(
 			<div className="todoList">
 			{tasks}
@@ -68,13 +86,40 @@ var TodoList = React.createClass({
 
 
 var TodoApp = React.createClass({
+
+	getInitialState : function() {
+		return {data : this.props.data};
+	},
+
+	handleTaskDone : function(todo){
+		console.log("inside handle task submit of TodoApp");
+		console.log(todo[0]);
+		var todos = this.state.data;
+		for (var i = 0; i<todos.length; i++){
+			if (todos[i].task==todo[0].task){
+				console.log("match found " + todos[i].task);
+				break;
+			}
+		}
+		todos.splice(i, 1);
+		this.setState({data : todos});
+	},
+
+	handleSubmit : function(todo){
+		console.log('inside handle Submit of TodoApp');
+		var todos = this.state.data;
+		var newTodos = todos.concat([todo]);		
+		this.setState({data : newTodos});
+	},
+
 	render : function(){
 		console.log("inside TodoApp");
+		var self = this;
 		return(
 			<div className="todoApp">
 			<h1>Todos</h1>
-			<TodoList data={this.props.data}/>
-			<Add data={this.props.data}/>
+			<TodoList data={this.state.data} handleClick={self.handleTaskDone}/>
+			<Add onAddClicked={this.handleSubmit}/>
 			</div>
 		);
 	}
